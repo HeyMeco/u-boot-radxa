@@ -414,6 +414,14 @@ config CMD_ABOOTIMG
 
 	  See doc/android/boot-image.rst for details.
 
+config CMD_BOOTEMBEDDED
+	bool "Enable source embedded script command"
+	default y
+	help
+	  Enables the 'bootembedded' command that runs the script appended to
+	  the end of u-boot binary. You can append the specific script to the
+	  end of u-boot binary.
+
 config CMD_ELF
 	bool "bootelf, bootvx"
 	default y

@@ -496,6 +496,7 @@
 		"setenv devplist\0"					  \
 	\
 	BOOT_TARGET_DEVICES(BOOTENV_DEV)                                  \
+	"bootcmd_embedded=bootembedded\0"                                 \
 	\
 	"distro_bootcmd=" BOOTENV_SET_SCSI_NEED_INIT                      \
 		BOOTENV_SET_NVME_NEED_INIT                                \
