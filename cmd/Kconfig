@@ -436,6 +436,14 @@ config CMD_FDT
 	help
 	  Do FDT related setup before booting into the Operating System.
 
+config CMD_DTBPROBE
+	bool "Probe and load device tree files in firmware partition"
+	default y
+	help
+	  The command probes and loads device tree files in firmware partitions with
+	  specific partition type. It is from 'boot_dtb' variable and searches for dtb
+	  files under predefined path.
+
 config SUPPORT_EXTENSION_SCAN
 	bool
 
