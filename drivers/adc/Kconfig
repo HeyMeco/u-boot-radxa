@@ -29,6 +29,14 @@ config ADC_SANDBOX
 	  - 16-bit resolution
 	  - single and multi-channel conversion mode
 
+config ADC_MTK
+	bool "Enable MediaTek ADC driver"
+	help
+	  This enables driver for MediaTek ADC device.
+	  It provides:
+	  - maximum 16 analog input channels
+	  - 12 bits resolution
+
 config SARADC_MESON
 	bool "Enable Amlogic Meson SARADC driver"
 	imply REGMAP
