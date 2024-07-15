@@ -351,7 +351,7 @@
 		};
 
 		pins-bl {
-			pinmux = <PINMUX_GPIO29__FUNC_O_DISP_PWM0>;
+			pinmux = <PINMUX_GPIO30__FUNC_O_DISP_PWM1>;
 		};
 	};
 
