@@ -11,6 +11,10 @@
 #include <asm/io.h>
 #include <linux/kernel.h>
 #include <linux/arm-smccc.h>
+#include <env.h>
+
+#include "mtk_panel.h"
+#include "mt8390_evk.h"
 
 #define MT8390_UPDATABLE_IMAGES	5
 
@@ -98,4 +102,50 @@ int board_init(void)
 		mediatek_capsule_update_board_setup();
 
 	return 0;
+}
+
+int check_board_id(void)
+{
+	unsigned int data;
+
+	adc_channel_single_shot(MT8390_ADC_NAME, MT8390_BOARD_ID_ADC_CHANNEL, &data);
+
+	if (data > MT8390_P1V4_THRESH)
+		return MT8390_EVK_BOARD_P1V4;
+	return MT8390_EVK_BOARD_LEGACY;
+}
+
+int board_late_init(void)
+{
+	int board_id;
+	char *var_name = "boot_conf";
+	char *boot_conf_val;
+	char *boot_conf_new_val;
+
+	board_id = check_board_id();
+
+	if (board_id == MT8390_EVK_BOARD_P1V4) {
+		boot_conf_val = env_get(var_name);
+		boot_conf_new_val = (char *)malloc((strlen(boot_conf_val) +
+						   strlen(MT8390_P1V4_DSI_DTS) + 1));
+		strcpy(boot_conf_new_val, boot_conf_val);
+		strcat(boot_conf_new_val, MT8390_P1V4_DSI_DTS);
+		env_set(var_name, boot_conf_new_val);
+		free(boot_conf_new_val);
+	}
+
+	boot_conf_val = env_get(var_name);
+	return 0;
+}
+
+void panel_get_desc(struct panel_description **panel_desc)
+{
+	int board_id;
+
+	board_id = check_board_id();
+
+	if (board_id == MT8390_EVK_BOARD_P1V4)
+		panel_get_desc_kd070fhfid078(panel_desc);
+	else
+		panel_get_desc_kd070fhfid015(panel_desc);
 }
