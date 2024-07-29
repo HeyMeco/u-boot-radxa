@@ -460,5 +460,29 @@
 			reg = <0 0x11ec2000 0 0x1000>;
 			#clock-cells = <1>;
 		};
+
+		vppsys0: syscon@14000000 {
+			compatible = "mediatek,mt8188-vpp0", "syscon";
+			reg = <0 0x14000000 0 0x1000>;
+			#clock-cells = <1>;
+		};
+
+		vppsys1: syscon@14f00000 {
+			compatible = "mediatek,mt8188-vpp1", "syscon";
+			reg = <0 0x14f00000 0 0x1000>;
+			#clock-cells = <1>;
+		};
+
+		vdosys0: syscon@1c01d000 {
+			compatible = "mediatek,mt8188-vdo0", "syscon";
+			reg = <0 0x1c01d000 0 0x1000>;
+			#clock-cells = <1>;
+		};
+
+		vdosys1: syscon@1c100000 {
+			compatible = "mediatek,mt8188-vdo1", "syscon";
+			reg = <0 0x1c100000 0 0x1000>;
+			#clock-cells = <1>;
+		};
 	};
 };
