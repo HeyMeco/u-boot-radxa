@@ -351,3 +351,7 @@
 		};
 	};
 };
+
+&auxadc {
+	status = "okay";
+};
