@@ -41,6 +41,8 @@
 #define SPM_PWR_STATUS		0x60c
 #define SPM_PWR_STATUS_2ND	0x610
 
+#define MTK_SCPD_STRICT_BUSP	BIT(6)
+
 #define PWR_RST_B_BIT		BIT(0)
 #define PWR_ISO_BIT		BIT(1)
 #define PWR_ON_BIT		BIT(2)
@@ -59,10 +61,6 @@
 #define PWR_STATUS_ETHSYS	BIT(24)
 #define PWR_STATUS_HIF0		BIT(25)
 #define PWR_STATUS_HIF1		BIT(26)
-
-/* MT8365 specific registers */
-#define MT8365_SPM_PWR_STATUS	   0x180
-#define MT8365_SPM_PWR_STATUS_2ND  0x184
 
 /* Infrasys configuration */
 #define INFRA_TOPDCM_CTRL	0x10
@@ -276,6 +274,18 @@
 #define MT8195_TOP_AXI_PROT_EN_SUB_INFRA_VDNR_VPPSYS0	BIT(20)
 #define MT8195_TOP_AXI_PROT_EN_SUB_INFRA_VDNR_VDOSYS0	BIT(21)
 
+#define MT8365_INFRA_TOPAXI_PROTECTEN_MM_M0				BIT(1)
+#define MT8365_INFRA_TOPAXI_PROTECTEN_MDMCU_M1				BIT(2)
+#define MT8365_INFRA_TOPAXI_PROTECTEN_MMAPB_S				BIT(6)
+#define MT8365_INFRA_TOPAXI_PROTECTEN_MM2INFRA_AXI_GALS_SLV_0		BIT(10)
+#define MT8365_INFRA_TOPAXI_PROTECTEN_MM2INFRA_AXI_GALS_SLV_1		BIT(11)
+#define MT8365_INFRA_TOPAXI_PROTECTEN_1_MM2INFRA_AXI_GALS_MST_0		BIT(16)
+#define MT8365_INFRA_TOPAXI_PROTECTEN_1_MM2INFRA_AXI_GALS_MST_1		BIT(17)
+#define MT8365_INFRA_NAO_TOPAXI_SI0_CTRL_UPDATED			BIT(24)
+#define MT8365_INFRA_TOPAXI_SI0_WAY_EN_MMAPB_S				BIT(6)
+#define MT8365_INFRA_TOPAXI_SI2_WAY_EN_PERI_M1				BIT(5)
+#define MT8365_INFRA_NAO_TOPAXI_SI2_CTRL_UPDATED			BIT(14)
+
 #define _BUS_PROT(_mask, _sta_mask, _set, _clr, _sta, _update, _ignore, _wayen) {	\
 		.bus_prot_mask = (_mask),				\
 		.bus_prot_set = _set,					\
@@ -289,6 +299,9 @@
 
 #define BUS_PROT_WR(_mask, _set, _clr, _sta)			\
 		_BUS_PROT(_mask, _mask, _set, _clr, _sta, false, false, false)
+
+#define BUS_PROT_WAYEN(_en_mask, _sta_mask, _set, _sta)		\
+		_BUS_PROT(_en_mask, _sta_mask, _set, _set, _sta, true, false, true)
 
 enum scp_domain_type {
 	SCPSYS_MT7622,
@@ -322,6 +335,7 @@ struct scp_domain_data {
 	const struct scpsys_bus_prot_data bp_infracfg[SPM_MAX_BUS_PROT_DATA];
 	int pwr_sta_offs;
 	int pwr_sta2nd_offs;
+	u16 caps;
 	int parent_id;
 	struct clk_bulk clks;
 	struct clk_bulk subsys_clks;
@@ -333,6 +347,7 @@ struct scp_domain {
 	struct udevice *dev;
 	void __iomem *base;
 	void __iomem *infracfg;
+	void __iomem *infracfg_nao;
 	enum scp_domain_type type;
 	struct scp_domain_data *data;
 	int num_domains;
@@ -1495,54 +1510,96 @@ static struct scp_domain_data scp_domain_mt8365[] = {
 	[MT8365_POWER_DOMAIN_MM] = {
 		.sta_mask = PWR_STATUS_DISP,
 		.ctl_offs = 0x30c,
+		.pwr_sta_offs = 0x0180,
+		.pwr_sta2nd_offs = 0x0184,
 		.sram_pdn_bits = GENMASK(8, 8),
 		.sram_pdn_ack_bits = GENMASK(12, 12),
+		.caps = MTK_SCPD_STRICT_BUSP,
+		.bp_infracfg = {
+			BUS_PROT_WR(
+				MT8365_INFRA_TOPAXI_PROTECTEN_1_MM2INFRA_AXI_GALS_MST_0 |
+				MT8365_INFRA_TOPAXI_PROTECTEN_1_MM2INFRA_AXI_GALS_MST_1,
+				0x2a8, 0x2ac, 0x258),
+			BUS_PROT_WR(
+				MT8365_INFRA_TOPAXI_PROTECTEN_MM_M0 |
+				MT8365_INFRA_TOPAXI_PROTECTEN_MDMCU_M1 |
+				MT8365_INFRA_TOPAXI_PROTECTEN_MM2INFRA_AXI_GALS_SLV_0 |
+				MT8365_INFRA_TOPAXI_PROTECTEN_MM2INFRA_AXI_GALS_SLV_1,
+				0x2a0, 0x2a4, 0x228),
+			BUS_PROT_WAYEN(
+				MT8365_INFRA_TOPAXI_SI0_WAY_EN_MMAPB_S,
+				MT8365_INFRA_NAO_TOPAXI_SI0_CTRL_UPDATED,
+				0x200, 0x0),
+			BUS_PROT_WAYEN(
+				MT8365_INFRA_TOPAXI_SI2_WAY_EN_PERI_M1,
+				MT8365_INFRA_NAO_TOPAXI_SI2_CTRL_UPDATED,
+				0x234, 0x28),
+			BUS_PROT_WR(
+				MT8365_INFRA_TOPAXI_PROTECTEN_MMAPB_S,
+				0x2a0, 0x2a4, 0x228),
+		},
 	},
 	[MT8365_POWER_DOMAIN_CONN] = {
 		.sta_mask = PWR_STATUS_CONN,
 		.ctl_offs = 0x032c,
+		.pwr_sta_offs = 0x0180,
+		.pwr_sta2nd_offs = 0x0184,
 		.sram_pdn_bits = 0,
 		.sram_pdn_ack_bits = 0,
 	},
 	[MT8365_POWER_DOMAIN_MFG] = {
 		.sta_mask = PWR_STATUS_MFG,
 		.ctl_offs = 0x0338,
+		.pwr_sta_offs = 0x0180,
+		.pwr_sta2nd_offs = 0x0184,
 		.sram_pdn_bits = GENMASK(9, 8),
 		.sram_pdn_ack_bits = GENMASK(13, 12),
 	},
 	[MT8365_POWER_DOMAIN_AUDIO] = {
 		.sta_mask = BIT(24),
 		.ctl_offs = 0x0314,
+		.pwr_sta_offs = 0x0180,
+		.pwr_sta2nd_offs = 0x0184,
 		.sram_pdn_bits = GENMASK(12, 8),
 		.sram_pdn_ack_bits = GENMASK(17, 13),
 	},
 	[MT8365_POWER_DOMAIN_CAM] = {
 		.sta_mask = BIT(25),
 		.ctl_offs = 0x0344,
+		.pwr_sta_offs = 0x0180,
+		.pwr_sta2nd_offs = 0x0184,
 		.sram_pdn_bits = GENMASK(9, 8),
 		.sram_pdn_ack_bits = GENMASK(13, 12),
 	},
 	[MT8365_POWER_DOMAIN_DSP] = {
 		.sta_mask = BIT(17),
 		.ctl_offs = 0x037C,
+		.pwr_sta_offs = 0x0180,
+		.pwr_sta2nd_offs = 0x0184,
 		.sram_pdn_bits = GENMASK(11, 8),
 		.sram_pdn_ack_bits = GENMASK(15, 12),
 	},
 	[MT8365_POWER_DOMAIN_VDEC] = {
 		.sta_mask = BIT(31),
 		.ctl_offs = 0x0370,
+		.pwr_sta_offs = 0x0180,
+		.pwr_sta2nd_offs = 0x0184,
 		.sram_pdn_bits = GENMASK(8, 8),
 		.sram_pdn_ack_bits = GENMASK(12, 12),
 	},
 	[MT8365_POWER_DOMAIN_VENC] = {
 		.sta_mask = BIT(21),
 		.ctl_offs = 0x0304,
+		.pwr_sta_offs = 0x0180,
+		.pwr_sta2nd_offs = 0x0184,
 		.sram_pdn_bits = GENMASK(8, 8),
 		.sram_pdn_ack_bits = GENMASK(12, 12),
 	},
 	[MT8365_POWER_DOMAIN_APU] = {
 		.sta_mask = BIT(16),
 		.ctl_offs = 0x0378,
+		.pwr_sta_offs = 0x0180,
+		.pwr_sta2nd_offs = 0x0184,
 		.sram_pdn_bits = GENMASK(14, 8),
 		.sram_pdn_ack_bits = GENMASK(21, 15),
 	},
@@ -1576,34 +1633,57 @@ static int mtk_infracfg_clear_bus_protection(void __iomem *infracfg,
 }
 
 static int _scpsys_bus_protect_enable(const struct scpsys_bus_prot_data bpd,
-				      void __iomem *reg)
+				      void __iomem *reg, void __iomem *infracfg_nao)
 {
 	int ret;
-	u32 val = 0, mask = bpd.bus_prot_mask;
+	u32 val = 0, mask = bpd.bus_prot_mask, sta_mask = mask;
+	void __iomem *ack_reg = reg;
 
 	if (!mask)
 		return 0;
+
+	if (bpd.wayen) {
+		if (!infracfg_nao)
+			return -ENODEV;
+
+		val = 0;
+		sta_mask = bpd.bus_prot_sta_mask;
+		ack_reg = infracfg_nao;
+	}
 
 	if (bpd.bus_prot_reg_update)
 		clrsetbits_le32(reg + bpd.bus_prot_set, mask, mask);
 	else
 		writel(mask, reg + bpd.bus_prot_set);
 
-	ret = readl_poll_timeout(reg + bpd.bus_prot_sta, val, (val & mask) == mask, 1000);
+	ret = readl_poll_timeout(ack_reg + bpd.bus_prot_sta, val, (val & mask) == mask, 1000);
 	if (ret)
 		return ret;
 
 	return 0;
 }
 
+#define mask_cond(wayen, val, mask) \
+	((wayen && ((val & mask) == mask)) || (!wayen && !(val & mask)))
+
 static int _scpsys_bus_protect_disable(const struct scpsys_bus_prot_data bpd,
-				       void __iomem *reg)
+				       void __iomem *reg, void __iomem *infracfg_nao)
 {
 	int ret;
-	u32 val = 0, mask = bpd.bus_prot_mask;
+	u32 val = 0, mask = bpd.bus_prot_mask, sta_mask = mask;
+	void __iomem *ack_reg = reg;
 
 	if (!mask)
 		return 0;
+
+	if (bpd.wayen) {
+		if (!infracfg_nao)
+			return -ENODEV;
+
+		val = mask;
+		sta_mask = bpd.bus_prot_sta_mask;
+		ack_reg = infracfg_nao;
+	}
 
 	if (bpd.bus_prot_reg_update)
 		clrbits_le32(reg + bpd.bus_prot_clr, mask);
@@ -1613,7 +1693,8 @@ static int _scpsys_bus_protect_disable(const struct scpsys_bus_prot_data bpd,
 	if (bpd.ignore_clr_ack)
 		return 0;
 
-	ret = readl_poll_timeout(reg + bpd.bus_prot_sta, val, !(val & mask), 1000);
+	ret = readl_poll_timeout(ack_reg + bpd.bus_prot_sta, val,
+				 mask_cond(bpd.wayen, val, sta_mask), 1000);
 	if (ret)
 		return ret;
 
@@ -1621,12 +1702,12 @@ static int _scpsys_bus_protect_disable(const struct scpsys_bus_prot_data bpd,
 }
 
 static int scpsys_bus_protect_enable(const struct scpsys_bus_prot_data *bpd, int bpd_size,
-				     void __iomem *reg)
+				     void __iomem *reg, void __iomem *infracfg_nao)
 {
 	int ret, i;
 
 	for (i = 0; i < bpd_size; i++) {
-		ret = _scpsys_bus_protect_enable(bpd[i], reg);
+		ret = _scpsys_bus_protect_enable(bpd[i], reg, infracfg_nao);
 		if (ret)
 			return ret;
 	}
@@ -1635,12 +1716,12 @@ static int scpsys_bus_protect_enable(const struct scpsys_bus_prot_data *bpd, int
 }
 
 static int scpsys_bus_protect_disable(const struct scpsys_bus_prot_data *bpd, int bpd_size,
-				      void __iomem *reg)
+				      void __iomem *reg, void __iomem *infracfg_nao)
 {
 	int i, ret;
 
 	for (i = bpd_size - 1; i >= 0; i--) {
-		ret = _scpsys_bus_protect_disable(bpd[i], reg);
+		ret = _scpsys_bus_protect_disable(bpd[i], reg, infracfg_nao);
 		if (ret)
 			return ret;
 	}
@@ -1657,9 +1738,6 @@ static int scpsys_domain_is_on(struct scp_domain_data *data)
 	if (data->pwr_sta_offs) {
 		spm_pwr_status = data->pwr_sta_offs;
 		spm_pwr_status_2nd = data->pwr_sta2nd_offs;
-	} else if (data->scpd->type == SCPSYS_MT8365) {
-		spm_pwr_status = MT8365_SPM_PWR_STATUS;
-		spm_pwr_status_2nd = MT8365_SPM_PWR_STATUS_2ND;
 	} else {
 		spm_pwr_status = SPM_PWR_STATUS;
 		spm_pwr_status_2nd = SPM_PWR_STATUS_2ND;
@@ -1736,7 +1814,8 @@ static int scpsys_power_on(struct power_domain *power_domain)
 		if (ret)
 			return ret;
 	}
-	ret = scpsys_bus_protect_disable(data->bp_infracfg, SPM_MAX_BUS_PROT_DATA, scpd->infracfg);
+	ret = scpsys_bus_protect_disable(data->bp_infracfg, SPM_MAX_BUS_PROT_DATA,
+					 scpd->infracfg, scpd->infracfg_nao);
 	if (ret < 0)
 		return ret;
 
@@ -1759,7 +1838,8 @@ static int scpsys_power_off(struct power_domain *power_domain)
 			return ret;
 	}
 
-	ret = scpsys_bus_protect_enable(data->bp_infracfg, SPM_MAX_BUS_PROT_DATA, scpd->infracfg);
+	ret = scpsys_bus_protect_enable(data->bp_infracfg, SPM_MAX_BUS_PROT_DATA,
+					scpd->infracfg, scpd->infracfg_nao);
 	if (ret < 0)
 		return ret;
 
@@ -1994,6 +2074,13 @@ static int mtk_power_domain_probe(struct udevice *dev)
 		scpd->infracfg = regmap_get_range(regmap, 0);
 		if (!scpd->infracfg)
 			return -ENOENT;
+	}
+
+	err = dev_read_phandle_with_args(dev, "infracfg-nao", NULL, 0, 0, &args);
+	if (!err) {
+		regmap = syscon_node_to_regmap(args.node);
+		if (!IS_ERR(regmap))
+			scpd->infracfg_nao = regmap_get_range(regmap, 0);
 	}
 
 	/* enable Infra DCM */
