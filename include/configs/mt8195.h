@@ -81,7 +81,9 @@
 #include <config_distro_bootcmd.h>
 
 #ifdef CONFIG_CMD_MMC
-#define BOOT_TARGET_MMC(func) func(MMC, mmc, 0)
+#define BOOT_TARGET_MMC(func) \
+	func(MMC, mmc, 0) \
+	func(MMC, mmc, 1)
 #else
 #define BOOT_TARGET_MMC(func)
 #endif
