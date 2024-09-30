@@ -118,23 +118,34 @@ int check_board_id(void)
 int board_late_init(void)
 {
 	int board_id;
-	char *var_name = "boot_conf";
-	char *boot_conf_val;
-	char *boot_conf_new_val;
+	char *fit_var_name = "boot_conf";
+	char *efi_var_name = "list_dtbo";
+	char *dtbo_val;
+	char *dtbo_new_val;
 
 	board_id = check_board_id();
 
 	if (board_id == MT8390_EVK_BOARD_P1V4) {
-		boot_conf_val = env_get(var_name);
-		boot_conf_new_val = (char *)malloc((strlen(boot_conf_val) +
-						   strlen(MT8390_P1V4_DSI_DTS) + 1));
-		strcpy(boot_conf_new_val, boot_conf_val);
-		strcat(boot_conf_new_val, MT8390_P1V4_DSI_DTS);
-		env_set(var_name, boot_conf_new_val);
-		free(boot_conf_new_val);
-	}
+		dtbo_val = env_get(fit_var_name);
+		if (!strstr(dtbo_val, MT8390_P1V4_DSI_DTS)) {
+			dtbo_new_val = (char *)malloc((strlen(dtbo_val) +
+						      strlen(MT8390_P1V4_DSI_DTS) + 1));
+			strcpy(dtbo_new_val, dtbo_val);
+			strcat(dtbo_new_val, MT8390_P1V4_DSI_DTS);
+			env_set(fit_var_name, dtbo_new_val);
+			free(dtbo_new_val);
+		}
 
-	boot_conf_val = env_get(var_name);
+		dtbo_val = env_get(efi_var_name);
+		if (!strstr(dtbo_val, MT8390_P1V4_DSI_DTS_EFI)) {
+			dtbo_new_val = (char *)malloc((strlen(dtbo_val) +
+							   strlen(MT8390_P1V4_DSI_DTS_EFI) + 2));
+			strcpy(dtbo_new_val, dtbo_val);
+			strcat(strcat(dtbo_new_val, " "), MT8390_P1V4_DSI_DTS_EFI);
+			env_set(efi_var_name, dtbo_new_val);
+			free(dtbo_new_val);
+		}
+	}
 	return 0;
 }
 

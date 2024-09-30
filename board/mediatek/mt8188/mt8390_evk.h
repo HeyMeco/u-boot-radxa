@@ -13,6 +13,7 @@
 #define MT8390_BOARD_ID_ADC_CHANNEL	1
 #define MT8390_ADC_NAME	"adc@11002000"
 #define MT8390_P1V4_DSI_DTS	"#conf-display-dsi-p1v4.dtbo"
+#define MT8390_P1V4_DSI_DTS_EFI	"display-dsi-p1v4.dtbo"
 #define MT8390_P1V4_THRESH	1100
 
 enum MT8390_EVK_BOARD_ID {
