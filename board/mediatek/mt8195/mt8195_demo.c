@@ -173,7 +173,8 @@ int board_init(void)
 		writel(val, 0x1072102C);
 	}
 
-	if (CONFIG_IS_ENABLED(UFS_MEDIATEK)) {
+	/* Run scsi_scan() only when the board support NOR and UFS storage */
+	if (CONFIG_IS_ENABLED(UFS_MEDIATEK) && CONFIG_IS_ENABLED(MTK_SNOR)) {
 		ret = scsi_scan(true);
 		if (ret) {
 			printf("scsi scan failed\n");
