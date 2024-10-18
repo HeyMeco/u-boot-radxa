@@ -542,6 +542,14 @@ config CMD_ZBOOT
 	  booting both 32- and 64-bit kernels, as well as secure boot.
 	  Documentation is available in doc/uImage.FIT/x86-fit-boot.txt
 
+config CMD_FDTPROBE
+	bool "Enable FDT probe command"
+	default n
+	help
+	  This provides probing and loading FDT files in firmware dedicated
+	  partitions. When secure boot is enabled, you should use the command to
+	  ensure the loaded FDT file is valid.
+
 endmenu
 
 menu "Environment commands"

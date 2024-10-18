@@ -86,6 +86,12 @@ static int loaddtb(char *devtype, char *devnum, int part, char *path, char *fdt_
 	if (run_command_list(cmd, -1, 0) != CMD_RET_SUCCESS)
 		return 1;
 
+#if IS_ENABLED(CONFIG_CMD_FDTPROBE)
+	sprintf(cmd, "fdt authndtb %s", fdt_addr);
+	if (run_command_list(cmd, -1, 0) != CMD_RET_SUCCESS)
+		return 1;
+#endif
+
 	sprintf(cmd, "fdt addr %s", fdt_addr);
 	if (run_command_list(cmd, -1, 0) != CMD_RET_SUCCESS)
 		return 1;
@@ -131,6 +137,14 @@ static int loadoverlays(char *devtype, char *devnum, int part, char *base)
 			rcode = 1;
 			goto out;
 		}
+
+#if IS_ENABLED(CONFIG_CMD_FDTPROBE)
+		sprintf(cmd, "fdt authndtb %s", overlay_addr);
+		if (run_command_list(cmd, -1, 0) != CMD_RET_SUCCESS) {
+			rcode = 1;
+			goto out;
+		}
+#endif
 
 		sprintf(cmd, "fdt apply %s", overlay_addr);
 		if (run_command_list(cmd, -1, 0) != CMD_RET_SUCCESS) {
@@ -211,8 +225,16 @@ static int do_dtbprobe(struct cmd_tbl *cmdtp, int flag, int argc,
 	return 1;
 }
 
+#if IS_ENABLED(CONFIG_CMD_FDTPROBE)
+U_BOOT_CMD(fdtprobe, CONFIG_SYS_MAXARGS, 1, do_dtbprobe,
+	   "Probe and load fdt from given partition list",
+	   "<interface> <dev> <probe_base>\n"
+	   "<probe_base>: The base directory for probing fdt files\n"
+);
+#else
 U_BOOT_CMD(dtbprobe, CONFIG_SYS_MAXARGS, 1, do_dtbprobe,
 	   "Probe and load dtb/dtbo from given partition list",
 	   "<interface> <dev> <probe_base>\n"
 	   "<probe_base>: The base directory for probing dtb files\n"
 );
+#endif
