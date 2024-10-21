@@ -550,6 +550,14 @@ config CMD_FDTPROBE
 	  partitions. When secure boot is enabled, you should use the command to
 	  ensure the loaded FDT file is valid.
 
+config CMD_IOT_AB
+	bool "Enable boot control command"
+	default n
+	help
+	  This provides changing the A or B slot of boot control from the
+	  metadata on the device. You can select another slot using the command
+	  for A or B boot control.
+
 endmenu
 
 menu "Environment commands"
