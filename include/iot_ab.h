@@ -49,4 +49,8 @@ struct mtk_bl_ctrl {
 	u32 reserved[3];
 	u32 crc32_le;
 };
+
+int iot_ab_boot_slot(int type);
+void iot_ab_boot_select(void);
+void iot_ab_boot_complete(void);
 #endif /* __MEDIATEK_IOT_AB_H */
