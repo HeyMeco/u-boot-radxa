@@ -493,7 +493,7 @@
 			assigned-clock-parents = <&topckgen CLK_TOP_ETHPLL_D2>,
 						 <&topckgen CLK_TOP_ETHPLL_D8>,
 						 <&topckgen CLK_TOP_ETHPLL_D10>;
-			/*power-domains = <&spm MT8195_POWER_DOMAIN_ETHER>;*/
+			power-domains = <&spm MT8195_POWER_DOMAIN_ETHER>;
 			mediatek,pericfg = <&infracfg_ao>;
 			status = "okay";
 		};
