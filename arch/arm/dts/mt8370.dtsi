@@ -9,6 +9,7 @@
 #include <dt-bindings/interrupt-controller/irq.h>
 #include <dt-bindings/interrupt-controller/arm-gic.h>
 #include <dt-bindings/pinctrl/mediatek,mt8188-pinfunc.h>
+#include <dt-bindings/power/mt8188-power.h>
 #include <dt-bindings/phy/phy.h>
 
 / {
@@ -177,7 +178,7 @@
 		};
 
 		infracfg_ao: infracfg-ao@10001000 {
-			compatible = "mediatek,mt8188-infracfg_ao";
+			compatible = "mediatek,mt8188-infracfg_ao", "syscon";
 			reg = <0 0x10001000 0 0x1000>;
 			#clock-cells = <1>;
 		};
@@ -210,6 +211,210 @@
 			};
 		};
 
+		spm: power-controller@10006000 {
+			compatible = "mediatek,mt8188-scpsys", "syscon";
+			reg = <0 0x10006000 0 0x1000>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+			#power-domain-cells = <1>;
+			infracfg = <&infracfg_ao>;
+
+			mfg0@MT8188_POWER_DOMAIN_MFG0 {
+				reg = <MT8188_POWER_DOMAIN_MFG0>;
+				#address-cells = <1>;
+				#size-cells = <0>;
+				#power-domain-cells = <1>;
+			};
+
+			vppsys0@MT8188_POWER_DOMAIN_VPPSYS0 {
+				reg = <MT8188_POWER_DOMAIN_VPPSYS0>;
+				clocks = <&topckgen CLK_TOP_VPP>,
+					 <&topckgen CLK_TOP_CAM>,
+					 <&topckgen CLK_TOP_CCU>,
+					 <&topckgen CLK_TOP_IMG>,
+					 <&topckgen CLK_TOP_VENC>,
+					 <&topckgen CLK_TOP_VDEC>,
+					 <&topckgen CLK_TOP_WPE_VPP>,
+					 <&topckgen CLK_TOP_CFGREG_CLOCK_EN_VPP0>,
+					 <&topckgen CLK_TOP_CFGREG_F26M_VPP0>,
+					 <&vppsys0 CLK_VPP0_SMI_COMMON_MMSRAM>,
+					 <&vppsys0 CLK_VPP0_GALS_VDO0_LARB0_MMSRAM>,
+					 <&vppsys0 CLK_VPP0_GALS_VDO0_LARB1_MMSRAM>,
+					 <&vppsys0 CLK_VPP0_GALS_VENCSYS_MMSRAM>,
+					 <&vppsys0 CLK_VPP0_GALS_VENCSYS_CORE1_MMSRAM>,
+					 <&vppsys0 CLK_VPP0_GALS_INFRA_MMSRAM>,
+					 <&vppsys0 CLK_VPP0_GALS_CAMSYS_MMSRAM>,
+					 <&vppsys0 CLK_VPP0_GALS_VPP1_LARB5_MMSRAM>,
+					 <&vppsys0 CLK_VPP0_GALS_VPP1_LARB6_MMSRAM>,
+					 <&vppsys0 CLK_VPP0_SMI_REORDER_MMSRAM>,
+					 <&vppsys0 CLK_VPP0_SMI_IOMMU>,
+					 <&vppsys0 CLK_VPP0_GALS_IMGSYS_CAMSYS>,
+					 <&vppsys0 CLK_VPP0_GALS_EMI0_EMI1>,
+					 <&vppsys0 CLK_VPP0_SMI_SUB_COMMON_REORDER>,
+					 <&vppsys0 CLK_VPP0_SMI_RSI>,
+					 <&vppsys0 CLK_VPP0_SMI_COMMON_LARB4>,
+					 <&vppsys0 CLK_VPP0_GALS_VDEC_VDEC_CORE1>,
+					 <&vppsys0 CLK_VPP0_GALS_VPP1_WPESYS>,
+					 <&vppsys0 CLK_VPP0_GALS_VDO0_VDO1_VENCSYS_CORE1>;
+				clock-names = "vppsys00", "vppsys01", "vppsys02", "vppsys03",
+					      "vppsys04", "vppsys05", "vppsys06", "vppsys07",
+					      "vppsys08",
+					      "vppsys0-0", "vppsys0-1", "vppsys0-2", "vppsys0-3",
+					      "vppsys0-4", "vppsys0-5", "vppsys0-6", "vppsys0-7",
+					      "vppsys0-8", "vppsys0-9", "vppsys0-10", "vppsys0-11",
+					      "vppsys0-12", "vppsys0-13", "vppsys0-14",
+					      "vppsys0-15", "vppsys0-16", "vppsys0-17",
+					      "vppsys0-18";
+				infracfg = <&infracfg_ao>;
+				#address-cells = <1>;
+				#size-cells = <0>;
+				#power-domain-cells = <1>;
+
+				vdosys0@MT8188_POWER_DOMAIN_VDOSYS0 {
+					reg = <MT8188_POWER_DOMAIN_VDOSYS0>;
+					clocks = <&topckgen CLK_TOP_CFGREG_CLOCK_EN_VDO0>,
+						 <&topckgen CLK_TOP_CFGREG_F26M_VDO0>,
+						 <&vdosys0 CLK_VDO0_SMI_GALS>,
+						 <&vdosys0 CLK_VDO0_SMI_COMMON>,
+						 <&vdosys0 CLK_VDO0_SMI_EMI>,
+						 <&vdosys0 CLK_VDO0_SMI_IOMMU>,
+						 <&vdosys0 CLK_VDO0_SMI_LARB>,
+						 <&vdosys0 CLK_VDO0_SMI_RSI>,
+						 <&vdosys0 CLK_VDO0_APB_BUS>;
+					clock-names = "vdosys00", "vdosys01",
+						      "vdosys0-0", "vdosys0-1", "vdosys0-2",
+						      "vdosys0-3", "vdosys0-4", "vdosys0-5",
+						      "vdosys0-6";
+					infracfg = <&infracfg_ao>;
+					#address-cells = <1>;
+					#size-cells = <0>;
+					#power-domain-cells = <1>;
+
+					vppsys1@MT8188_POWER_DOMAIN_VPPSYS1 {
+						reg = <MT8188_POWER_DOMAIN_VPPSYS1>;
+						clocks = <&topckgen CLK_TOP_CFGREG_CLOCK_EN_VPP1>,
+							 <&topckgen CLK_TOP_CFGREG_F26M_VPP1>,
+							 <&vppsys1 CLK_VPP1_GALS5>,
+							 <&vppsys1 CLK_VPP1_GALS6>,
+							 <&vppsys1 CLK_VPP1_LARB5>,
+							 <&vppsys1 CLK_VPP1_LARB6>;
+						clock-names = "vppsys10", "vppsys11",
+							      "vppsys1-0", "vppsys1-1",
+							      "vppsys1-2", "vppsys1-3";
+						infracfg = <&infracfg_ao>;
+						#power-domain-cells = <0>;
+					};
+
+					vdosys1@MT8188_POWER_DOMAIN_VDOSYS1 {
+						reg = <MT8188_POWER_DOMAIN_VDOSYS1>;
+						clocks = <&topckgen CLK_TOP_CFGREG_CLOCK_EN_VDO1>,
+							 <&topckgen CLK_TOP_CFGREG_F26M_VDO1>,
+							 <&vdosys1 CLK_VDO1_SMI_LARB2>,
+							 <&vdosys1 CLK_VDO1_SMI_LARB3>,
+							 <&vdosys1 CLK_VDO1_GALS>;
+						clock-names = "vdosys10", "vdosys11",
+							      "vdosys1-0", "vdosys1-1", "vdosys1-2";
+						infracfg = <&infracfg_ao>;
+						#address-cells = <1>;
+						#size-cells = <0>;
+						#power-domain-cells = <1>;
+
+						hdmi-tx@MT8188_POWER_DOMAIN_HDMI_TX {
+							reg = <MT8188_POWER_DOMAIN_HDMI_TX>;
+							clocks = <&topckgen CLK_TOP_HDMI_APB>,
+								 <&topckgen CLK_TOP_HDCP_24M>;
+							clock-names = "hdmi_tx0", "hdmi_tx1";
+							infracfg = <&infracfg_ao>;
+							#power-domain-cells = <0>;
+						};
+
+						dp-tx@MT8188_POWER_DOMAIN_DP_TX {
+							reg = <MT8188_POWER_DOMAIN_DP_TX>;
+							infracfg = <&infracfg_ao>;
+							#power-domain-cells = <0>;
+						};
+
+						edp-tx@MT8188_POWER_DOMAIN_EDP_TX {
+							reg = <MT8188_POWER_DOMAIN_EDP_TX>;
+							infracfg = <&infracfg_ao>;
+							#power-domain-cells = <0>;
+						};
+					};
+				};
+			};
+
+			pextp-mac-p0@MT8188_POWER_DOMAIN_PEXTP_MAC_P0 {
+				reg = <MT8188_POWER_DOMAIN_PEXTP_MAC_P0>;
+				infracfg = <&infracfg_ao>;
+				clocks = <&pericfg_ao CLK_PERI_AO_PCIE_P0_FMEM>;
+				clock-names = "pextp_mac_p0-0";
+				#power-domain-cells = <0>;
+			};
+
+			csirx-top@MT8188_POWER_DOMAIN_CSIRX_TOP {
+				reg = <MT8188_POWER_DOMAIN_CSIRX_TOP>;
+				clocks = <&topckgen CLK_TOP_SENINF>,
+					 <&topckgen CLK_TOP_SENINF1>;
+				clock-names = "csirx_top0", "csirx_top1";
+				#power-domain-cells = <0>;
+			};
+
+			pextp-phy-top@MT8188_POWER_DOMAIN_PEXTP_PHY_TOP {
+				reg = <MT8188_POWER_DOMAIN_PEXTP_PHY_TOP>;
+				#power-domain-cells = <0>;
+			};
+
+			adsp-ao@MT8188_POWER_DOMAIN_ADSP_AO {
+				reg = <MT8188_POWER_DOMAIN_ADSP_AO>;
+				clocks = <&topckgen CLK_TOP_AUDIO_LOCAL_BUS>,
+					 <&topckgen CLK_TOP_ADSP>;
+				clock-names = "adsp_ao0", "adsp_ao1";
+				infracfg = <&infracfg_ao>;
+				#address-cells = <1>;
+				#size-cells = <0>;
+				#power-domain-cells = <1>;
+
+				adsp-infra@MT8188_POWER_DOMAIN_ADSP_INFRA {
+					reg = <MT8188_POWER_DOMAIN_ADSP_INFRA>;
+					infracfg = <&infracfg_ao>;
+					#address-cells = <1>;
+					#size-cells = <0>;
+					#power-domain-cells = <1>;
+
+					audio-asrc@MT8188_POWER_DOMAIN_AUDIO_ASRC {
+						reg = <MT8188_POWER_DOMAIN_AUDIO_ASRC>;
+						clocks = <&topckgen CLK_TOP_ASM_H>;
+						clock-names = "audio_asrc0";
+						infracfg = <&infracfg_ao>;
+						#power-domain-cells = <0>;
+					};
+
+					audio@MT8188_POWER_DOMAIN_AUDIO {
+						reg = <MT8188_POWER_DOMAIN_AUDIO>;
+						clocks = <&topckgen CLK_TOP_A1SYS_HP>,
+							 <&topckgen CLK_TOP_AUD_INTBUS>;
+						clock-names = "audio0", "audio1";
+						infracfg = <&infracfg_ao>;
+						#power-domain-cells = <0>;
+					};
+
+					adsp@MT8188_POWER_DOMAIN_ADSP {
+						reg = <MT8188_POWER_DOMAIN_ADSP>;
+						infracfg = <&infracfg_ao>;
+						#power-domain-cells = <0>;
+					};
+				};
+			};
+
+			ether@MT8188_POWER_DOMAIN_ETHER {
+				reg = <MT8188_POWER_DOMAIN_ETHER>;
+				clocks = <&pericfg_ao CLK_PERI_AO_ETHERNET_MAC>;
+				clock-names = "ether0";
+				infracfg = <&infracfg_ao>;
+				#power-domain-cells = <0>;
+			};
+		};
+
 		uart0: serial@11001100 {
 			compatible = "mediatek,mt8195-uart",
 				     "mediatek,hsuart";
@@ -227,6 +432,19 @@
 			reg = <0 0x11230000 0 0x1000>,
 			      <0 0x11f50000 0 0x1000>;
 			interrupts = <GIC_SPI 77 IRQ_TYPE_LEVEL_LOW>;
+			clocks = <&mmc_source_clk>,
+				 <&clk26m>,
+				 <&clk26m>;
+			clock-names = "source", "hclk", "source_cg";
+			status = "disabled";
+		};
+
+		mmc1: mmc@11240000 {
+			compatible = "mediatek,mt8195-mmc",
+				     "mediatek,mt8183-mmc";
+			reg = <0 0x11240000 0 0x1000>,
+			      <0 0x11eb0000 0 0x1000>;
+			interrupts = <GIC_SPI 135 IRQ_TYPE_LEVEL_LOW>;
 			clocks = <&mmc_source_clk>,
 				 <&clk26m>,
 				 <&clk26m>;
@@ -298,6 +516,35 @@
 				interrupts = <GIC_SPI 532 IRQ_TYPE_LEVEL_HIGH 0>;
 				status = "disabled";
 			};
+		};
+
+		eth: ethernet@11021000 {
+			compatible = "mediatek,mt8195-gmac", "snps,dwmac-5.10a";
+			reg = <0 0x11021000 0 0x4000>,
+				  <0 0x10006000 0 0x1000>;
+			interrupts = <GIC_SPI 716 IRQ_TYPE_LEVEL_HIGH 0>;
+			interrupt-names = "macirq";
+			clock-names = "axi",
+				      "apb",
+				      "mac_cg",
+				      "mac_main",
+				      "ptp_ref",
+				      "rmii_internal";
+			clocks = <&pericfg_ao CLK_PERI_AO_ETHERNET>,
+				 <&pericfg_ao CLK_PERI_AO_ETHERNET_BUS>,
+				 <&pericfg_ao CLK_PERI_AO_ETHERNET_MAC>,
+				 <&topckgen CLK_TOP_SNPS_ETH_250M>,
+				 <&topckgen CLK_TOP_SNPS_ETH_62P4M_PTP>,
+				 <&topckgen CLK_TOP_SNPS_ETH_50M_RMII>;
+			assigned-clocks = <&topckgen CLK_TOP_SNPS_ETH_250M>,
+					  <&topckgen CLK_TOP_SNPS_ETH_62P4M_PTP>,
+					  <&topckgen CLK_TOP_SNPS_ETH_50M_RMII>;
+			assigned-clock-parents = <&topckgen CLK_TOP_ETHPLL_D2>,
+						 <&topckgen CLK_TOP_ETHPLL_D8>,
+						 <&topckgen CLK_TOP_ETHPLL_D10>;
+			power-domains = <&spm MT8188_POWER_DOMAIN_ETHER>;
+			mediatek,pericfg = <&infracfg_ao>;
+			status = "okay";
 		};
 
 		i2c1: i2c@11e00000 {
@@ -458,6 +705,30 @@
 		imp_iic_wrap_en: syscon@11ec2000 {
 			compatible = "mediatek,mt8188-imp_iic_wrap_en";
 			reg = <0 0x11ec2000 0 0x1000>;
+			#clock-cells = <1>;
+		};
+
+		vppsys0: syscon@14000000 {
+			compatible = "mediatek,mt8188-vpp0", "syscon";
+			reg = <0 0x14000000 0 0x1000>;
+			#clock-cells = <1>;
+		};
+
+		vppsys1: syscon@14f00000 {
+			compatible = "mediatek,mt8188-vpp1", "syscon";
+			reg = <0 0x14f00000 0 0x1000>;
+			#clock-cells = <1>;
+		};
+
+		vdosys0: syscon@1c01d000 {
+			compatible = "mediatek,mt8188-vdo0", "syscon";
+			reg = <0 0x1c01d000 0 0x1000>;
+			#clock-cells = <1>;
+		};
+
+		vdosys1: syscon@1c100000 {
+			compatible = "mediatek,mt8188-vdo1", "syscon";
+			reg = <0 0x1c100000 0 0x1000>;
 			#clock-cells = <1>;
 		};
 	};

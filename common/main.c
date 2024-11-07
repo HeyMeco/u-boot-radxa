@@ -14,6 +14,7 @@
 #include <console.h>
 #include <env.h>
 #include <init.h>
+#include <iot_ab.h>
 #include <net.h>
 #include <version_string.h>
 #include <efi_loader.h>
@@ -59,6 +60,9 @@ void main_loop(void)
 		if (efi_init_obj_list() == EFI_SUCCESS)
 			efi_launch_capsules();
 	}
+
+	if (IS_ENABLED(CONFIG_MEDIATEK_IOT_AB_BOOT_SUPPORT))
+		iot_ab_boot_slot(0);
 
 	s = bootdelay_process();
 	if (cli_process_fdt(&s))

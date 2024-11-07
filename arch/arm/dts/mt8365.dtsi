@@ -140,10 +140,23 @@
 		scpsys: scpsys@10006000 {
 			compatible = "mediatek,mt8365-scpsys";
 			#power-domain-cells = <1>;
+			#address-cells = <1>;
+			#size-cells = <0>;
 			reg = <0 0x10006000 0 0x1000>;
 			infracfg = <&infracfg>;
-			clocks = <&topckgen CLK_TOP_MM_SEL>;
-			clock-names = "mm";
+			infracfg-nao = <&infracfg_nao>;
+
+			power-domain@MT8365_POWER_DOMAIN_MM {
+				reg = <MT8365_POWER_DOMAIN_MM>;
+				clocks = <&topckgen CLK_TOP_MM_SEL>,
+					 <&mmsys CLK_MM_MM_SMI_COMMON>,
+					 <&mmsys CLK_MM_MM_SMI_COMM0>,
+					 <&mmsys CLK_MM_MM_SMI_COMM1>,
+					 <&mmsys CLK_MM_MM_SMI_LARB0>;
+				clock-names = "mm", "mm-0", "mm-1",
+					      "mm-2", "mm-3";
+				#power-domain-cells = <0>;
+			};
 		};
 
 		apmixedsys: syscon@1000c000 {
@@ -160,6 +173,11 @@
 				 <&infracfg CLK_IFR_PWRAP_SYS>,
 				 <&infracfg CLK_IFR_PWRAP_TMR>;
 			clock-names = "spi", "wrap", "wrap_sys", "wrap_tmr";
+		};
+
+		infracfg_nao: infracfg-nao@1020e000 {
+			compatible = "syscon";
+			reg = <0 0x1020e000 0 0x1000>;
 		};
 
 		uart0: uart0@11002000 {

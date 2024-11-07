@@ -7,10 +7,15 @@
 #include <common.h>
 #include <dm.h>
 #include <efi_loader.h>
+#include <iot_ab.h>
 #include <net.h>
 #include <asm/io.h>
 #include <linux/kernel.h>
 #include <linux/arm-smccc.h>
+#include <env.h>
+
+#include "mtk_panel.h"
+#include "mt8390_evk.h"
 
 #define MT8390_UPDATABLE_IMAGES	5
 
@@ -18,8 +23,13 @@
 static struct efi_fw_image fw_images[MT8390_UPDATABLE_IMAGES] = {0};
 
 struct efi_capsule_update_info update_info = {
+#if IS_ENABLED(CONFIG_MEDIATEK_IOT_AB_BOOT_SUPPORT)
+	.dfu_string = "mmc 0=bl2.img raw 0x0 0x2000 mmcpart 1;"
+			"fip.bin part 0 %d;firmware.vfat part 0 %d;u-boot-env.bin raw 0x0 0x2000 mmcpart 2",
+#else
 	.dfu_string = "mmc 0=bl2.img raw 0x0 0x2000 mmcpart 1;"
 			"fip.bin part 0 1;firmware.vfat part 0 3;u-boot-env.bin raw 0x0 0x2000 mmcpart 2",
+#endif
 	.images = fw_images,
 };
 
@@ -69,6 +79,27 @@ void mediatek_capsule_update_board_setup(void)
 		fw_images[4].fw_name = u"GENIO-700-EVK-ENV";
 	}
 }
+
+#if IS_ENABLED(CONFIG_MEDIATEK_IOT_AB_BOOT_SUPPORT)
+void set_dfu_alt_info(char *interface, char *devstr)
+{
+	char alt[BOOTCTRL_DFU_ALT_LEN] = {0};
+	const char *s = env_get(BOOTCTRL_ENV);
+
+	if (s) {
+		if (!strcmp(s, "a")) {
+			if (sprintf(alt, update_info.dfu_string, BOOTCTRL_FIP_NUM + PART_BOOT_B,
+				    BOOTCTRL_FW_NUM + PART_BOOT_B) < 0)
+				return;
+		} else if (!strcmp(s, "b")) {
+			if (sprintf(alt, update_info.dfu_string,
+				    BOOTCTRL_FIP_NUM, BOOTCTRL_FW_NUM) < 0)
+				return;
+		}
+		env_set("dfu_alt_info", alt);
+	}
+}
+#endif
 #endif /* CONFIG_EFI_HAVE_CAPSULE_SUPPORT && CONFIG_EFI_PARTITION */
 
 int board_init(void)
@@ -98,4 +129,61 @@ int board_init(void)
 		mediatek_capsule_update_board_setup();
 
 	return 0;
+}
+
+int check_board_id(void)
+{
+	unsigned int data;
+
+	adc_channel_single_shot(MT8390_ADC_NAME, MT8390_BOARD_ID_ADC_CHANNEL, &data);
+
+	if (data > MT8390_P1V4_THRESH)
+		return MT8390_EVK_BOARD_P1V4;
+	return MT8390_EVK_BOARD_LEGACY;
+}
+
+int board_late_init(void)
+{
+	int board_id;
+	char *fit_var_name = "boot_conf";
+	char *efi_var_name = "list_dtbo";
+	char *dtbo_val;
+	char *dtbo_new_val;
+
+	board_id = check_board_id();
+
+	if (board_id == MT8390_EVK_BOARD_P1V4) {
+		dtbo_val = env_get(fit_var_name);
+		if (!strstr(dtbo_val, MT8390_P1V4_DSI_DTS)) {
+			dtbo_new_val = (char *)malloc((strlen(dtbo_val) +
+						      strlen(MT8390_P1V4_DSI_DTS) + 1));
+			strcpy(dtbo_new_val, dtbo_val);
+			strcat(dtbo_new_val, MT8390_P1V4_DSI_DTS);
+			env_set(fit_var_name, dtbo_new_val);
+			free(dtbo_new_val);
+		}
+
+		dtbo_val = env_get(efi_var_name);
+		if (!strstr(dtbo_val, MT8390_P1V4_DSI_DTS_EFI)) {
+			dtbo_new_val = (char *)malloc((strlen(dtbo_val) +
+							   strlen(MT8390_P1V4_DSI_DTS_EFI) + 2));
+			strcpy(dtbo_new_val, dtbo_val);
+			strcat(strcat(dtbo_new_val, " "), MT8390_P1V4_DSI_DTS_EFI);
+			env_set(efi_var_name, dtbo_new_val);
+			free(dtbo_new_val);
+		}
+	}
+	return 0;
+}
+
+void panel_get_desc(struct panel_description **panel_desc)
+{
+	int board_id;
+
+	board_id = check_board_id();
+
+	if (board_id == MT8390_EVK_BOARD_P1V4)
+		panel_get_desc_kd070fhfid078(panel_desc);
+	else
+		panel_get_desc_kd070fhfid015(panel_desc);
 }

@@ -11,7 +11,7 @@
 #include <asm/gpio.h>
 #include "mtk_panel.h"
 
-void panel_get_desc(struct panel_description **panel_desc);
+void panel_get_desc_kd070fhfid015(struct panel_description **panel_desc);
 
 struct dsi_info kd070fhfid015_dsi = {
 	.lanes = 4,
@@ -117,7 +117,7 @@ struct panel_description startek_kd070fhfid015_desc = {
 	.backlight_enable = NULL,
 };
 
-void panel_get_desc(struct panel_description **panel_desc)
+void panel_get_desc_kd070fhfid015(struct panel_description **panel_desc)
 {
 	*panel_desc = &startek_kd070fhfid015_desc;
 }

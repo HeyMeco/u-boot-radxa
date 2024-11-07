@@ -21,6 +21,7 @@
 #include <dm/root.h>
 #include <env.h>
 #include <image.h>
+#include <iot_ab.h>
 #include <u-boot/zlib.h>
 #include <asm/byteorder.h>
 #include <linux/libfdt.h>
@@ -301,6 +302,9 @@ static void boot_jump_linux(bootm_headers_t *images, int flag)
 	debug("## Transferring control to Linux (at address %lx)...\n",
 		(ulong) kernel_entry);
 	bootstage_mark(BOOTSTAGE_ID_RUN_OS);
+
+	if (IS_ENABLED(CONFIG_MEDIATEK_IOT_AB_BOOT_SUPPORT))
+		iot_ab_boot_complete();
 
 	announce_and_cleanup(fake);
 

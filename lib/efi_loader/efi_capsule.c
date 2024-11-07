@@ -15,6 +15,7 @@
 #include <fdtdec.h>
 #include <fs.h>
 #include <hang.h>
+#include <iot_ab.h>
 #include <malloc.h>
 #include <mapmem.h>
 #include <sort.h>
@@ -1104,6 +1105,9 @@ efi_status_t efi_launch_capsules(void)
 	u16 **files;
 	unsigned int nfiles, index, i;
 	efi_status_t ret;
+#if IS_ENABLED(CONFIG_MEDIATEK_IOT_AB_BOOT_SUPPORT)
+	unsigned int boot_ab = 0;
+#endif
 
 	if (check_run_capsules() != EFI_SUCCESS)
 		return EFI_SUCCESS;
@@ -1135,9 +1139,16 @@ efi_status_t efi_launch_capsules(void)
 				log_err("Applying capsule %ls failed.\n",
 					files[i]);
 			else
+#if !IS_ENABLED(CONFIG_MEDIATEK_IOT_AB_BOOT_SUPPORT)
 				log_info("Applying capsule %ls succeeded.\n",
 					 files[i]);
-
+#else
+			{
+				log_info("Applying capsule %ls succeeded.\n",
+					 files[i]);
+				boot_ab++;
+			}
+#endif
 			/* create CapsuleXXXX */
 			set_capsule_result(index, capsule, ret);
 
@@ -1152,6 +1163,10 @@ efi_status_t efi_launch_capsules(void)
 				files[i]);
 	}
 	efi_capsule_scan_done();
+#if IS_ENABLED(CONFIG_MEDIATEK_IOT_AB_BOOT_SUPPORT)
+	if (boot_ab == nfiles)
+		iot_ab_boot_select();
+#endif
 
 	for (i = 0; i < nfiles; i++)
 		free(files[i]);

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0 OR MIT
 /*
- * Copyright (C) 2023 MediaTek Inc.
+ * Copyright (C) 2024 MediaTek INC.
  * Author: Macpaul Lin <macpaul.lin@mediatek.com>
  */
 
@@ -10,8 +10,8 @@
 #include "mt8195.dtsi"
 
 / {
-	model = "MediaTek Genio-1200 EVK";
-	compatible = "mediatek,genio-1200-evk", "mediatek,mt8195";
+	model = "MediaTek Genio-1200 EVK with UFS and QSPI NOR Flash storage";
+	compatible = "mediatek,genio-1200-evk-ufs-qspi", "mediatek,mt8195";
 
 	memory@40000000 {
 		/* 8GB */
@@ -97,18 +97,6 @@
 		clock-names = "main", "mm";
 		status = "okay";
 	};
-
-	edp_tx: edp-tx@1c500000 {
-		compatible = "mediatek,mt8195-edp-tx";
-		reg = <0 0x60000000 0 0x02000000>;
-		pinctrl-names = "default";
-		pinctrl-0 = <&edp_pin_default>;
-		vcc-gpios = <&gpio 6 GPIO_ACTIVE_HIGH>;
-		bl-en-gpios = <&gpio 95 GPIO_ACTIVE_HIGH>;
-		bl-vcc-gpios = <&gpio 96 GPIO_ACTIVE_HIGH>;
-		pwm-gpios = <&gpio 104 GPIO_ACTIVE_HIGH>;
-		status = "disabled";
-	};
 };
 
 &pio {
@@ -129,6 +117,13 @@
 	i2c2_pins: i2c2 {
 		pinmux = <PINMUX_GPIO12__FUNC_SDA2>,
 			 <PINMUX_GPIO13__FUNC_SCL2>;
+		input-enable;
+		bias-pull-up;
+	};
+
+	i2c3_pins: i2c3 {
+		pinmux = <PINMUX_GPIO14__FUNC_SDA3>,
+			 <PINMUX_GPIO15__FUNC_SCL3>;
 		input-enable;
 		bias-pull-up;
 	};
@@ -235,33 +230,6 @@
 		};
 	};
 
-	edp_pin_default: edp-pin-default {
-		edp-panel-vcc {
-			pinmux = <PINMUX_GPIO6__FUNC_GPIO6>;
-			output-low;
-		};
-
-		edp-panel-hpd {
-			pinmux = <PINMUX_GPIO7__FUNC_EDP_TX_HPD>;
-			bias-pull-up;
-		};
-
-		edp-panel-bl-en {
-			pinmux = <PINMUX_GPIO95__FUNC_GPIO95>;
-			output-low;
-		};
-
-		edp-panel-bl-vcc {
-			pinmux = <PINMUX_GPIO96__FUNC_GPIO96>;
-			output-low;
-		};
-
-		edp-panel-pwm {
-			pinmux = <PINMUX_GPIO104__FUNC_DISP_PWM1>;
-			output-low;
-		};
-	};
-
 	mmc1_pins_default: mmc1default {
 		pins-cmd-dat {
 			pinmux = <PINMUX_GPIO110__FUNC_MSDC1_CMD>,
@@ -278,6 +246,22 @@
 			pinmux = <PINMUX_GPIO111__FUNC_MSDC1_CLK>;
 			drive-strength = <MTK_DRIVE_8mA>;
 			bias-pull-down = <MTK_PUPD_SET_R1R0_10>;
+		};
+	};
+
+	snor_pins: snor-pins {
+		pins-ck-io {
+			pinmux = <PINMUX_GPIO142__FUNC_SPINOR_IO0>,
+				 <PINMUX_GPIO141__FUNC_SPINOR_CK>,
+				 <PINMUX_GPIO143__FUNC_SPINOR_IO1>;
+			drive-strength = <6>;
+			bias-pull-down;
+		};
+
+		pins-cs {
+			pinmux = <PINMUX_GPIO140__FUNC_SPINOR_CS>;
+			drive-strength = <6>;
+			bias-pull-up;
 		};
 	};
 };
@@ -301,7 +285,7 @@
 	vmmc-supply = <&reg_3p3v>;
 	vqmmc-supply = <&reg_1p8v>;
 	non-removable;
-	status = "okay";
+	status = "disabled";
 };
 
 &mmc1 {
@@ -313,6 +297,24 @@
 	vmmc-supply = <&reg_3p3v>;
 	vqmmc-supply = <&reg_3p3v>;
 	non-removable;
+	status = "okay";
+};
+
+&snor {
+	pinctrl-names = "default";
+	pinctrl-0 = <&snor_pins>;
+	status = "okay";
+
+	spi-flash@0{
+		compatible = "jedec,spi-nor";
+		reg = <0>;
+		#spi-tx-bus-width = <1>;
+		#spi-rx-bus-width = <4>;
+		#u-boot,dm-pre-reloc;
+	};
+};
+
+&ufs {
 	status = "okay";
 };
 
@@ -352,6 +354,13 @@
 &i2c2 {
 	clock-frequency = <100000>;
 	pinctrl-0 = <&i2c2_pins>;
+	pinctrl-names = "default";
+	status = "okay";
+};
+
+&i2c3 {
+	clock-frequency = <100000>;
+	pinctrl-0 = <&i2c3_pins>;
 	pinctrl-names = "default";
 	status = "okay";
 };

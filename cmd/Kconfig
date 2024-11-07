@@ -414,6 +414,14 @@ config CMD_ABOOTIMG
 
 	  See doc/android/boot-image.rst for details.
 
+config CMD_BOOTEMBEDDED
+	bool "Enable source embedded script command"
+	default y
+	help
+	  Enables the 'bootembedded' command that runs the script appended to
+	  the end of u-boot binary. You can append the specific script to the
+	  end of u-boot binary.
+
 config CMD_ELF
 	bool "bootelf, bootvx"
 	default y
@@ -427,6 +435,14 @@ config CMD_FDT
 	depends on OF_LIBFDT
 	help
 	  Do FDT related setup before booting into the Operating System.
+
+config CMD_DTBPROBE
+	bool "Probe and load device tree files in firmware partition"
+	default y
+	help
+	  The command probes and loads device tree files in firmware partitions with
+	  specific partition type. It is from 'boot_dtb' variable and searches for dtb
+	  files under predefined path.
 
 config SUPPORT_EXTENSION_SCAN
 	bool
@@ -525,6 +541,22 @@ config CMD_ZBOOT
 	  Consider using FIT in preference to this since it supports directly
 	  booting both 32- and 64-bit kernels, as well as secure boot.
 	  Documentation is available in doc/uImage.FIT/x86-fit-boot.txt
+
+config CMD_FDTPROBE
+	bool "Enable FDT probe command"
+	default n
+	help
+	  This provides probing and loading FDT files in firmware dedicated
+	  partitions. When secure boot is enabled, you should use the command to
+	  ensure the loaded FDT file is valid.
+
+config CMD_IOT_AB
+	bool "Enable boot control command"
+	default n
+	help
+	  This provides changing the A or B slot of boot control from the
+	  metadata on the device. You can select another slot using the command
+	  for A or B boot control.
 
 endmenu
 
